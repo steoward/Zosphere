@@ -17,8 +17,9 @@ import { CalculatorApp } from './apps/CalculatorApp';
 import { NotesApp } from './apps/NotesApp';
 import { BrowserApp } from './apps/BrowserApp';
 import { FilesApp } from './apps/FilesApp';
+import { TerminalApp } from './apps/TerminalApp';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { Inbox, Search, Settings, User, Folder } from 'lucide-react';
+import { Inbox, Search, Settings, User, Folder, Terminal } from 'lucide-react';
 
 export default function App() {
   const { view, theme, openWindows, openWindow, closeWindow } = useStore();
@@ -162,6 +163,11 @@ export default function App() {
         {openWindows.includes('files') && (
           <Window id="files" title="الملفات" defaultPosition={{ x: 250, y: 150 }} width={700} height={500}>
             <FilesApp />
+          </Window>
+        )}
+        {openWindows.includes('terminal') && (
+          <Window id="terminal" title="Terminal" defaultPosition={{ x: 300, y: 200 }} width={600} height={400}>
+            <TerminalApp />
           </Window>
         )}
         {openWindows.filter(id => id.startsWith('file-')).map((id, index) => (

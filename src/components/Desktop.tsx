@@ -8,7 +8,8 @@ import {
   CloudSun, 
   MoreVertical,
   RefreshCw,
-  Maximize
+  Maximize,
+  Terminal
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
@@ -39,6 +40,7 @@ export function Desktop() {
     { id: 'notes', name: 'الملاحظات', icon: <FileText size={32} className="text-emerald-400" /> },
     { id: 'calculator', name: 'الحاسبة', icon: <Calculator size={32} className="text-purple-400" /> },
     { id: 'browser', name: 'المتصفح', icon: <Globe size={32} className="text-cyan-400" /> },
+    { id: 'terminal', name: 'Terminal', icon: <Terminal size={32} className="text-gray-300" /> },
     { id: 'settings', name: 'الإعدادات', icon: <Settings size={32} className="text-gray-400" /> },
   ];
 

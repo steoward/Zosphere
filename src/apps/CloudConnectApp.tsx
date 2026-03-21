@@ -14,7 +14,7 @@ export function CloudConnectApp() {
       setAuth(data.authenticated, data.user);
       
       if (data.authenticated) {
-        // Initialize Zenith Studio folder
+        // Initialize Zosphere folder
         const initRes = await fetch('/api/drive/init', { method: 'POST' });
         if (initRes.ok) {
           const initData = await initRes.json();
@@ -73,7 +73,7 @@ export function CloudConnectApp() {
       <div className="text-center mb-4">
         <h2 className="text-2xl font-bold mb-2 drop-shadow-md">اربط خدمات التخزين السحابي</h2>
         <p className="text-sm text-white/70 max-w-md mx-auto">
-          اختر الخدمة التي تفضلها لمزامنة ملفاتك وعرضها على سطح مكتبك الافتراضي. سيتم إنشاء مجلد "Zenith Studio" خاص بك.
+          اختر الخدمة التي تفضلها لمزامنة ملفاتك وعرضها على سطح مكتبك الافتراضي. سيتم إنشاء مجلد "Zosphere" خاص بك.
         </p>
       </div>
 
@@ -180,7 +180,10 @@ function DriveExplorer({ onDisconnect, userEmail, folderId }: { onDisconnect: ()
         name: file.name,
         type: file.mimeType.includes('image') ? 'image' : 'document',
         url: file.webViewLink,
-        icon: file.iconLink
+        icon: file.iconLink,
+        parentId: 'root',
+        createdAt: Date.now(),
+        updatedAt: Date.now()
       });
       
       // Show a brief success indication
@@ -207,7 +210,7 @@ function DriveExplorer({ onDisconnect, userEmail, folderId }: { onDisconnect: ()
         <div className="flex items-center gap-2">
           {folderId && (
             <span className="text-xs bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full border border-blue-500/30">
-              مجلد Zenith Studio جاهز
+              مجلد Zosphere جاهز
             </span>
           )}
           <button 

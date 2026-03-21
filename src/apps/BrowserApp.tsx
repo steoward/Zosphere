@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Search, ArrowRight, ArrowLeft, RotateCw, Home, Star } from 'lucide-react';
 
 export function BrowserApp() {
-  const [url, setUrl] = useState('https://zenithstudio.ai');
+  const [url, setUrl] = useState('https://zosphere.ai');
   const [input, setInput] = useState(url);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -58,7 +58,7 @@ export function BrowserApp() {
         {/* Mockup content since iframes can be blocked by CORS */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-white/90 p-8 text-center">
           <GlobeIcon className="w-24 h-24 text-blue-400 mb-6 opacity-50 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
-          <h1 className="text-3xl font-bold mb-4 drop-shadow-md">Zenith Studio</h1>
+          <h1 className="text-3xl font-bold mb-4 drop-shadow-md">Zosphere</h1>
           <p className="text-white/70 max-w-md">
             Welcome to the future of web experiences. This is a simulated browser environment running inside your virtual desktop.
           </p>
