@@ -17,7 +17,7 @@ export function FilePreviewApp({ fileId }: { fileId: string }) {
 
   if (!file) {
     return (
-      <div className="flex flex-col items-center justify-center h-full w-full bg-white/5 backdrop-blur-xl text-white rounded-2xl p-6">
+      <div className="flex flex-col items-center justify-center h-full w-full bg-white/5 backdrop-blur-xl text-white rounded-none p-6">
         <File size={48} className="text-white/20 mb-4" />
         <p className="text-lg text-white/60">الملف غير موجود أو تم حذفه</p>
       </div>
@@ -137,7 +137,7 @@ export function FilePreviewApp({ fileId }: { fileId: string }) {
   };
 
   return (
-    <div className="flex h-full w-full bg-white/5 backdrop-blur-xl text-white rounded-2xl overflow-hidden">
+    <div className="flex h-full w-full bg-white/5 backdrop-blur-xl text-white rounded-none overflow-hidden">
       
       {/* Main Preview Section */}
       <div className="flex-1 flex flex-col min-w-0 relative">

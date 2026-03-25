@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useStore, FileItem } from '../store/useStore';
-import { Terminal as TerminalIcon, Play, X, Cpu, Command } from 'lucide-react';
+import { Terminal as TerminalIcon, Play, X, Cpu, Command, Square, Plus, RefreshCw } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -15,97 +15,178 @@ type CommandHistory = {
   isError?: boolean;
 };
 
-function LinuxVM({ isActive }: { isActive: boolean }) {
-  const screenRef = useRef<HTMLDivElement>(null);
+function DaytonaSandbox({ isActive }: { isActive: boolean }) {
+  const [workspaces, setWorkspaces] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [booting, setBooting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const emulatorRef = useRef<any>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [repoUrl, setRepoUrl] = useState('');
+
+  const fetchWorkspaces = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/daytona/workspace');
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to fetch workspaces');
+      }
+      const data = await res.json();
+      setWorkspaces(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createWorkspace = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!repoUrl) return;
+    
+    setIsCreating(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/daytona/workspace', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          repositories: [
+            {
+              url: repoUrl
+            }
+          ]
+        })
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to create workspace');
+      }
+      
+      setRepoUrl('');
+      await fetchWorkspaces();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   useEffect(() => {
-    if (emulatorRef.current) {
-      // Try to enable/disable keyboard based on active state
-      try {
-        emulatorRef.current.keyboard_set_status(isActive);
-      } catch (e) {
-        // Ignore if method not available
-      }
+    if (isActive) {
+      fetchWorkspaces();
     }
   }, [isActive]);
 
-  useEffect(() => {
-    const startEmulator = () => {
-      if (!window.V86) {
-        setError('Failed to load v86 engine.');
-        return;
-      }
-      try {
-        setBooting(true);
-        emulatorRef.current = new window.V86({
-          wasm_path: 'https://copy.sh/v86/build/v86.wasm',
-          memory_size: 32 * 1024 * 1024,
-          vga_memory_size: 2 * 1024 * 1024,
-          screen_container: screenRef.current,
-          bios: {
-            url: 'https://copy.sh/v86/bios/seabios.bin',
-          },
-          vga_bios: {
-            url: 'https://copy.sh/v86/bios/vgabios.bin',
-          },
-          cdrom: {
-            url: 'https://copy.sh/v86/images/linux3.iso',
-          },
-          autostart: true,
-        });
-
-        emulatorRef.current.add_listener('emulator-ready', () => {
-          setLoading(false);
-          setBooting(false);
-        });
-      } catch (err: any) {
-        setError(err.message || 'Failed to start emulator');
-      }
-    };
-
-    if (!window.V86) {
-      const script = document.createElement('script');
-      script.src = 'https://copy.sh/v86/build/libv86.js';
-      script.onload = startEmulator;
-      script.onerror = () => setError('Failed to load libv86.js');
-      document.body.appendChild(script);
-    } else {
-      startEmulator();
-    }
-
-    return () => {
-      if (emulatorRef.current) {
-        emulatorRef.current.destroy();
-      }
-    };
-  }, []);
-
   return (
-    <div className="flex-1 w-full h-full bg-black relative flex flex-col items-center justify-center overflow-hidden">
-      {error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-20 text-red-500 p-4 text-center">
-          <X size={48} className="mb-4" />
-          <p>{error}</p>
+    <div className="flex-1 w-full h-full bg-[#0a0a0a] text-gray-300 p-6 overflow-auto">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500/20 rounded-lg">
+              <TerminalIcon className="text-blue-400" size={24} />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-white">Daytona Workspaces</h2>
+              <p className="text-sm text-gray-400">Manage your cloud development environments</p>
+            </div>
+          </div>
+          <button 
+            onClick={fetchWorkspaces}
+            disabled={loading}
+            className="p-2 hover:bg-white/10 rounded-md transition-colors"
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          </button>
         </div>
-      )}
-      {(loading || booting) && !error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-10 text-green-500 font-mono">
-          <Cpu size={48} className="mb-4 animate-pulse" />
-          <p>Booting Linux Kernel (v86)...</p>
-          <p className="text-xs text-green-700 mt-2">Downloading ISO image (5MB), please wait...</p>
-        </div>
-      )}
-      <div 
-        ref={screenRef} 
-        className="w-full h-full flex items-center justify-center"
-        style={{ backgroundColor: '#000' }}
-      >
-        <div style={{ whiteSpace: 'pre', font: '14px monospace', lineHeight: '14px', color: '#ccc' }}></div>
-        <canvas style={{ display: 'none' }}></canvas>
+
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
+
+        {loading && !workspaces.length ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {workspaces.length === 0 ? (
+              <div className="text-center py-12 bg-white/5 rounded-xl border border-white/10">
+                <TerminalIcon size={48} className="mx-auto text-gray-500 mb-4" />
+                <h3 className="text-lg font-medium text-white mb-2">No workspaces found</h3>
+                <p className="text-gray-400 mb-6">Create a new Daytona workspace to get started.</p>
+                <form onSubmit={createWorkspace} className="max-w-md mx-auto flex gap-2">
+                  <input
+                    type="text"
+                    value={repoUrl}
+                    onChange={(e) => setRepoUrl(e.target.value)}
+                    placeholder="Git Repository URL"
+                    className="flex-1 bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                    required
+                  />
+                  <button 
+                    type="submit"
+                    disabled={isCreating}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                  >
+                    {isCreating ? <RefreshCw size={18} className="animate-spin" /> : <Plus size={18} />}
+                    Create
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <>
+                <div className="mb-6">
+                  <form onSubmit={createWorkspace} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={repoUrl}
+                      onChange={(e) => setRepoUrl(e.target.value)}
+                      placeholder="Git Repository URL"
+                      className="flex-1 bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                      required
+                    />
+                    <button 
+                      type="submit"
+                      disabled={isCreating}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                    >
+                      {isCreating ? <RefreshCw size={18} className="animate-spin" /> : <Plus size={18} />}
+                      Create
+                    </button>
+                  </form>
+                </div>
+                {workspaces.map((ws: any) => (
+                  <div key={ws.id} className="bg-white/5 border border-white/10 rounded-xl p-5 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-medium text-white">{ws.name}</h3>
+                      <p className="text-sm text-gray-400 mt-1">Repository: {ws.repository?.url || 'N/A'}</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${ws.info?.providerMetadata?.state === 'started' ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+                        <span className="text-sm text-gray-300 capitalize">{ws.info?.providerMetadata?.state || 'Unknown'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button className="p-2 bg-white/10 hover:bg-white/20 rounded-md transition-colors text-white" title="Start">
+                          <Play size={16} />
+                        </button>
+                        <button className="p-2 bg-white/10 hover:bg-white/20 rounded-md transition-colors text-white" title="Stop">
+                          <Square size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -113,7 +194,7 @@ function LinuxVM({ isActive }: { isActive: boolean }) {
 
 export function TerminalApp() {
   const { localFiles, addLocalFile, removeLocalFile, updateLocalFile } = useStore();
-  const [activeTab, setActiveTab] = useState<'cli' | 'linux'>('cli');
+  const [activeTab, setActiveTab] = useState<'cli' | 'daytona'>('cli');
   const [history, setHistory] = useState<CommandHistory[]>([
     { command: '', output: 'Zosphere Terminal v1.0.0\nType "help" for a list of commands.\nKaggle API integration available via "kaggle" command (uses KAGGLE_API_TOKEN from secrets).\nGoogle Drive & Docs integration available via "drive" command.' }
   ]);
@@ -371,7 +452,7 @@ export function TerminalApp() {
               isError = true;
             }
           } else {
-            output = "Python 3.10.12 (main, Nov 20 2023, 15:14:05) [GCC 11.4.0] on linux\nType 'help', 'copyright', 'credits' or 'license' for more information.\n>>> (Interactive mode not supported in preview. Use python -c \"code\")";
+            output = "Python 3.10.12 (main, Nov 20 2023, 15:14:05) [GCC 11.4.0] on daytona\nType 'help', 'copyright', 'credits' or 'license' for more information.\n>>> (Interactive mode not supported in preview. Use python -c \"code\")";
           }
           break;
 
@@ -593,7 +674,7 @@ export function TerminalApp() {
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#0a0a0a]/90 backdrop-blur-2xl text-gray-300 font-mono text-sm rounded-2xl overflow-hidden border border-white/10 shadow-2xl" dir="ltr" onClick={() => activeTab === 'cli' && inputRef.current?.focus()}>
+    <div className="flex flex-col h-full w-full bg-[#0a0a0a]/90 backdrop-blur-2xl text-gray-300 font-mono text-sm rounded-none overflow-hidden border border-white/10 shadow-2xl" dir="ltr" onClick={() => activeTab === 'cli' && inputRef.current?.focus()}>
       {/* Terminal Header */}
       <div className="flex items-center justify-between px-4 py-2 bg-black/40 border-b border-white/10 select-none">
         <div className="flex items-center gap-4">
@@ -610,11 +691,11 @@ export function TerminalApp() {
               CLI
             </button>
             <button
-              onClick={() => setActiveTab('linux')}
-              className={`px-3 py-1 text-xs font-sans rounded-md transition-colors flex items-center gap-1 ${activeTab === 'linux' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white/80'}`}
+              onClick={() => setActiveTab('daytona')}
+              className={`px-3 py-1 text-xs font-sans rounded-md transition-colors flex items-center gap-1 ${activeTab === 'daytona' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white/80'}`}
             >
               <Cpu size={12} />
-              Linux VM
+              Daytona Sandbox
             </button>
           </div>
         </div>
@@ -666,8 +747,8 @@ export function TerminalApp() {
         <div ref={bottomRef} />
       </div>
       
-      <div className={`flex-1 w-full h-full ${activeTab === 'linux' ? 'block' : 'hidden'}`}>
-        <LinuxVM isActive={activeTab === 'linux'} />
+      <div className={`flex-1 w-full h-full ${activeTab === 'daytona' ? 'block' : 'hidden'}`}>
+        <DaytonaSandbox isActive={activeTab === 'daytona'} />
       </div>
     </div>
   );

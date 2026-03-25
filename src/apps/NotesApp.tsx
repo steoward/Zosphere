@@ -47,7 +47,7 @@ export function NotesApp() {
   };
 
   return (
-    <div className="flex h-full w-full text-white bg-white/5 backdrop-blur-xl rounded-2xl overflow-hidden">
+    <div className="flex h-full w-full text-white bg-white/5 backdrop-blur-xl rounded-none overflow-hidden">
       {/* Sidebar */}
       <div className="w-1/3 border-l border-white/10 bg-black/20 p-4 flex flex-col gap-4">
         <button 

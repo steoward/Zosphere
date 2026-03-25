@@ -63,7 +63,7 @@ export function FilesApp() {
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-white/5 backdrop-blur-xl text-white rounded-2xl overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-white/5 backdrop-blur-xl text-white rounded-none overflow-hidden">
       {/* Toolbar */}
       <div className="flex flex-col border-b border-white/10 bg-black/20">
         <div className="flex items-center justify-between p-4">

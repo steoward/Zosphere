@@ -383,6 +383,32 @@ app.post('/api/kaggle', async (req, res) => {
   }
 });
 
+app.use('/api/daytona', async (req, res) => {
+  const apiKey = process.env.DAYTONA_API_KEY;
+  if (!apiKey) {
+    return res.status(401).json({ error: 'DAYTONA_API_KEY is not set in secrets.' });
+  }
+
+  try {
+    const targetUrl = `https://app.daytona.io/api${req.path}`;
+    const response = await axios({
+      method: req.method,
+      url: targetUrl,
+      data: req.method !== 'GET' ? req.body : undefined,
+      params: req.query,
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+    res.status(response.status).json(response.data);
+  } catch (error: any) {
+    console.error('Daytona API Error:', error.response?.data || error.message);
+    res.status(error.response?.status || 500).json(error.response?.data || { error: 'Failed to fetch from Daytona API' });
+  }
+});
+
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

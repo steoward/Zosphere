@@ -16,7 +16,7 @@ export function BrowserApp() {
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-white/5 backdrop-blur-xl text-white rounded-2xl overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-white/5 backdrop-blur-xl text-white rounded-none overflow-hidden">
       {/* Browser Toolbar */}
       <div className="flex items-center gap-3 p-3 border-b border-white/10 bg-black/20 backdrop-blur-md">
         <div className="flex gap-1">

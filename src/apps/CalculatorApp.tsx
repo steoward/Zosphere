@@ -74,7 +74,7 @@ export function CalculatorApp() {
   ];
 
   return (
-    <div className="w-full h-full flex flex-col p-4 text-white bg-white/5 backdrop-blur-xl rounded-2xl">
+    <div className="w-full h-full flex flex-col p-4 text-white bg-white/5 backdrop-blur-xl rounded-none">
       <div className="flex-1 flex flex-col items-end justify-end p-4 mb-4 bg-white/10 rounded-2xl border border-white/20 shadow-inner">
         <div className="text-white/50 text-sm h-6 tracking-widest" dir="ltr">
           {expression}

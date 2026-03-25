@@ -6,6 +6,11 @@ import {
   Folder, 
   Globe, 
   CloudSun, 
+  Sun,
+  Cloud,
+  CloudRain,
+  CloudLightning,
+  CloudSnow,
   MoreVertical,
   RefreshCw,
   Maximize,
@@ -13,10 +18,75 @@ import {
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
+const getWeatherDetails = (code: number) => {
+  if (code === 0) return { desc: 'صافي', Icon: Sun };
+  if (code === 1 || code === 2) return { desc: 'غائم جزئياً', Icon: CloudSun };
+  if (code === 3 || code === 45 || code === 48) return { desc: 'غائم', Icon: Cloud };
+  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return { desc: 'ممطر', Icon: CloudRain };
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return { desc: 'مثلج', Icon: CloudSnow };
+  if (code >= 95) return { desc: 'عواصف رعدية', Icon: CloudLightning };
+  return { desc: 'غير معروف', Icon: CloudSun };
+};
+
 export function Desktop() {
   const openWindow = useStore(state => state.openWindow);
   const [time, setTime] = useState(new Date());
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number } | null>(null);
+  const [weather, setWeather] = useState<{ temp: number | null, desc: string, city: string, Icon: any }>({
+    temp: null,
+    desc: 'جاري التحميل...',
+    city: 'تحديد الموقع...',
+    Icon: CloudSun
+  });
+
+  // Fetch weather data
+  useEffect(() => {
+    const fetchWeather = async (lat: number, lon: number) => {
+      try {
+        // Fetch weather
+        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+        const weatherData = await weatherRes.json();
+        
+        // Fetch city name (reverse geocoding)
+        const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ar`);
+        const geoData = await geoRes.json();
+        
+        const current = weatherData.current_weather;
+        const details = getWeatherDetails(current.weathercode);
+        
+        setWeather({
+          temp: Math.round(current.temperature),
+          desc: details.desc,
+          city: geoData.city || geoData.locality || geoData.principalSubdivision || 'موقعك الحالي',
+          Icon: details.Icon
+        });
+      } catch (error) {
+        console.error("Failed to fetch weather:", error);
+        setWeather({
+          temp: null,
+          desc: 'تعذر الاتصال',
+          city: 'غير معروف',
+          Icon: CloudSun
+        });
+      }
+    };
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          fetchWeather(position.coords.latitude, position.coords.longitude);
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          // Fallback to a default location (e.g., Riyadh) if denied
+          fetchWeather(24.7136, 46.6753);
+        }
+      );
+    } else {
+      // Fallback if geolocation is not supported
+      fetchWeather(24.7136, 46.6753);
+    }
+  }, []);
 
   // Update clock every minute
   useEffect(() => {
@@ -66,12 +136,14 @@ export function Desktop() {
         {/* Weather Widget */}
         <div className="w-64 p-5 rounded-3xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-xl border border-white/20 shadow-2xl pointer-events-auto flex items-center justify-between hover:bg-white/10 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] transition-all duration-300">
           <div className="relative flex items-center justify-center w-16 h-16 bg-white/10 rounded-2xl shadow-inner border border-white/10">
-            <CloudSun size={36} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]" />
+            <weather.Icon size={36} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]" />
           </div>
           <div className="text-left">
-            <div className="text-3xl font-light text-white drop-shadow-md" dir="ltr">24°C</div>
-            <div className="text-sm text-white/80 mt-1">غائم جزئياً</div>
-            <div className="text-xs text-white/50 mt-1">الرياض</div>
+            <div className="text-3xl font-light text-white drop-shadow-md" dir="ltr">
+              {weather.temp !== null ? `${weather.temp}°C` : '--'}
+            </div>
+            <div className="text-sm text-white/80 mt-1">{weather.desc}</div>
+            <div className="text-xs text-white/50 mt-1 truncate max-w-[100px]">{weather.city}</div>
           </div>
         </div>
 

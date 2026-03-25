@@ -69,7 +69,7 @@ export function CloudConnectApp() {
   }
 
   return (
-    <div className="flex flex-col space-y-6 text-white h-full items-center justify-center bg-white/5 backdrop-blur-xl rounded-2xl overflow-hidden p-6">
+    <div className="flex flex-col space-y-6 text-white h-full items-center justify-center bg-white/5 backdrop-blur-xl rounded-none overflow-hidden p-6">
       <div className="text-center mb-4">
         <h2 className="text-2xl font-bold mb-2 drop-shadow-md">اربط خدمات التخزين السحابي</h2>
         <p className="text-sm text-white/70 max-w-md mx-auto">
@@ -195,7 +195,7 @@ function DriveExplorer({ onDisconnect, userEmail, folderId }: { onDisconnect: ()
   };
 
   return (
-    <div className="flex flex-col h-full bg-white/5 backdrop-blur-xl rounded-2xl overflow-hidden text-white">
+    <div className="flex flex-col h-full bg-white/5 backdrop-blur-xl rounded-none overflow-hidden text-white">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/20">
         <div className="flex items-center space-x-3 space-x-reverse">

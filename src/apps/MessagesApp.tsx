@@ -2,7 +2,7 @@ import { Send } from 'lucide-react';
 
 export function MessagesApp() {
   return (
-    <div className="flex flex-col h-full w-full bg-white/5 backdrop-blur-xl text-white rounded-2xl overflow-hidden p-4">
+    <div className="flex flex-col h-full w-full bg-white/5 backdrop-blur-xl text-white rounded-none overflow-hidden p-4">
       <div className="flex-1 overflow-auto p-2 space-y-4">
         <MessageBubble text="مرحباً! هل يمكنك مشاركة ملف التصميم الأخير معي؟" isMe={false} time="10:30 ص" />
         <MessageBubble text="أهلاً! بالتأكيد، لقد قمت بتحديث صلاحيات المجلد ليكون متاحاً للأصدقاء." isMe={true} time="10:32 ص" />
